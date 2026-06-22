@@ -16,20 +16,17 @@ st.success("✅ Model loaded successfully!")
 n_features = model.n_features_in_
 st.write(f"Model expects **{n_features}** features")
 
-# Sidebar with training data option
+# Sidebar
 st.sidebar.title("Options")
 show_training_data = st.sidebar.checkbox("🧪 Show Training Data", value=False)
 
 # Training data (optional)
 if show_training_data:
     st.subheader("🧪 Training Data")
-    
     data_path = Path(r"D:\Network_intrusion_detection\data\Train_data.csv")
-    
     if data_path.exists():
         df = pd.read_csv(data_path)
         st.write(f"**Shape:** {df.shape[0]} rows × {df.shape[1]} columns")
-        st.write(f"**Features:** {df.shape[1] - 1}")
         st.write(f"**Target:** {df['class'].value_counts().to_dict()}")
         st.dataframe(df.head())
     else:
@@ -45,24 +42,34 @@ if uploaded_file is not None:
     st.write(f"📄 Uploaded: {uploaded_file.name}")
     st.write(f"**Shape:** {df.shape[0]} rows × {df.shape[1]} columns")
     st.dataframe(df.head())
-    
+
     if st.button("🚀 Predict Intrusion"):
         try:
+            # ✅ Preprocessing — must match notebook exactly
+            df = df.drop(columns=['num_outbound_cmds', 'is_host_login', 'class'], errors='ignore')
+
+            if 'protocol_type' in df.columns:
+                df['protocol_type'] = df['protocol_type'].map({'tcp': 0, 'udp': 1, 'icmp': 2})
+            if 'service' in df.columns:
+                df['service'] = df['service'].map({'http': 0, 'ftp': 1, 'smtp': 2, 'telnet': 3, 'other': 4})
+            if 'flag' in df.columns:
+                df['flag'] = df['flag'].map({'SF': 0, 'S0': 1, 'S1': 2, 'S2': 3})
+
             if df.shape[1] != n_features:
                 st.error(f"❌ Feature mismatch! Expected {n_features}, got {df.shape[1]}")
             else:
                 prediction = model.predict(df)
                 st.success("✅ Predictions generated!")
                 st.write(f"**Count:** {len(prediction)}")
-                
+
                 unique_preds = pd.Series(prediction).value_counts()
                 st.subheader("Prediction Summary:")
                 st.dataframe(unique_preds)
-                
+
                 df['prediction'] = prediction
                 st.subheader("Data with Predictions:")
                 st.dataframe(df.head())
-                
+
                 csv_output = df.to_csv(index=False)
                 st.download_button(
                     label="📥 Download Results as CSV",
