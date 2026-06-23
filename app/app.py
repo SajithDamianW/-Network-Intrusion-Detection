@@ -10,12 +10,12 @@ st.title("🛡️ Network Intrusion Detection")
 st.write("App loaded successfully.")
 
 # --- DYNAMIC FILE PATH SETUP ---
-# This looks at the directory where app.py is saved and anchors paths relative to it.
-# This prevents crashes when moving from Windows (local) to Linux (Streamlit Cloud).
+# BASE_DIR targets 'D:\Network_intrusion_detection\app'
 BASE_DIR = Path(__file__).resolve().parent
 
-# Set path to the model file: assumes it is stored inside a 'models' folder next to app.py
-model_path = BASE_DIR / "models" / "network_intrusion_model.pkl"
+# 🛠️ FIX: Added '.parent' to climb out of 'app' and into the root folder 
+# This correctly matches your layout: D:\Network_intrusion_detection\models\...
+model_path = BASE_DIR.parent / "models" / "network_intrusion_model.pkl"
 
 # --- MACHINE LEARNING MODEL LOADING ---
 if model_path.exists():
@@ -36,8 +36,8 @@ show_training_data = st.sidebar.checkbox("🧪 Show Training Data", value=False)
 
 if show_training_data:
     st.subheader("🧪 Training Data")
-    # Set path to training data: assumes it is stored inside a 'data' folder next to app.py
-    data_path = BASE_DIR / "data" / "Train_data.csv"
+    # 🛠️ FIX: Added '.parent' here as well to reach D:\Network_intrusion_detection\data\...
+    data_path = BASE_DIR.parent / "data" / "Train_data.csv"
     
     if data_path.exists():
         df = pd.read_csv(data_path)
